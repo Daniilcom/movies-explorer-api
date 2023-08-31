@@ -6,13 +6,16 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 module.exports = (req, res, next) => {
   const token = req.cookies.jwt;
 
+  if (!req.cookies) {
+    return next(new AuthError('Необходимо авторизоваться'));
+  }
+
   let payload;
   try {
     payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
   } catch (err) {
-    next(new AuthError('Необходимо авторизоваться'));
-    return;
+    return next(new AuthError('Необходимо авторизоваться'));
   }
   req.user = payload;
-  next();
+  return next();
 };

@@ -13,7 +13,12 @@ const { SUCCESS_CODE, CREATED_CODE } = require('../utils/constants');
 const getMovies = (req, res, next) => {
   const owner = req.user._id;
   Movie.find({ owner })
-    .then((movies) => res.status(SUCCESS_CODE).send(movies))
+    .then((movies) => {
+      if (movies.length === 0) {
+        throw new NotFoundError('Ваш список фильмов пуст');
+      }
+      res.status(SUCCESS_CODE).send(movies);
+    })
     .catch((err) => {
       next(err);
     });
@@ -31,13 +36,15 @@ const createMovie = (req, res, next) => {
 };
 
 const deleteMovie = (req, res, next) => {
-  Movie.findByIdAndRemove(req.params.movieId)
+  Movie.findById(req.params.movieId)
     .orFail(() => next(new NotFoundError('Фильм с данным id не найден')))
     .then((movie) => {
       if (movie.owner._id.toString() !== req.user._id.toString()) {
         throw new Forbidden('Фильм с данным id невозможно удалить');
       }
-      res.status(SUCCESS_CODE).send({ message: 'Пост удален!' });
+      Movie.findByIdAndRemove(req.params.movieId)
+        .then(() => res.status(SUCCESS_CODE).send({ message: 'Фильм удален!' }))
+        .catch(next);
     })
     .catch((err) => {
       if (err instanceof CastError) {

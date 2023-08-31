@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cookies = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { errors } = require('celebrate');
@@ -12,7 +13,7 @@ const NotFoundError = require('./utils/errors/not-found-err');
 const { PORT, DB_URL } = process.env;
 
 const app = express();
-app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001'], credentials: true, maxAge: 18000 }));
+app.use(cors({ origin: ['http://localhost:3000'], credentials: true, maxAge: 18000 }));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -33,6 +34,7 @@ mongoose.connect(DB_URL);
 
 app.use(express.json());
 app.use(limiter);
+app.use(cookies());
 app.use(helmet());
 app.use(requestLogger);
 
@@ -48,7 +50,7 @@ app.post('/signin', validateLogin, login);
 app.use('/users', auth, usersRouter);
 app.use('/movies', auth, moviesRouter);
 
-app.get('/signout', auth, logout);
+app.get('/signout', logout);
 
 app.use('*', auth, (req, res, next) => {
   next(new NotFoundError('Страница не найдена'));

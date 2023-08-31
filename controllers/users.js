@@ -11,8 +11,10 @@ const NotFoundError = require('../utils/errors/not-found-err');
 const Conflict = require('../utils/errors/conflict-err');
 
 const {
-  NODE_ENV, JWT_SECRET, CREATED_CODE,
+  NODE_ENV, JWT_SECRET,
 } = process.env;
+
+const { CREATED_CODE, SUCCESS_CODE } = require('../utils/constants');
 
 const createUser = (req, res, next) => {
   const { email, password, name } = req.body;
@@ -39,12 +41,13 @@ const login = (req, res, next) => {
   User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
-      return res
+      res
         .cookie('jwt', token, {
           maxAge: 3600000,
           httpOnly: true,
           sameSite: true,
         })
+        .status(SUCCESS_CODE)
         .send(user.toJSON());
     })
     .catch((err) => {
@@ -53,14 +56,14 @@ const login = (req, res, next) => {
 };
 
 const logout = (req, res) => {
-  res.clearCookie('jwt').send({ message: 'Выход выполнен' });
+  res.clearCookie('jwt').status(SUCCESS_CODE).send({ message: 'Выход выполнен' });
 };
 
 const getUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(() => next(new NotFoundError('Пользователь не найден')))
     .then((user) => {
-      res.send(user);
+      res.status(SUCCESS_CODE).send(user);
     })
     .catch((err) => {
       if (err instanceof CastError) {
@@ -79,7 +82,7 @@ const updateUser = (req, res, next) => {
   )
     .orFail(() => next(new NotFoundError('Пользователь не найден')))
     .then((user) => {
-      res.send(user);
+      res.status(SUCCESS_CODE).send(user);
     })
     .catch((err) => {
       if (err instanceof ValidationError) {
