@@ -48,7 +48,11 @@ const login = (req, res, next) => {
           sameSite: true,
         })
         .status(SUCCESS_CODE)
-        .send(user.toJSON());
+        .send({
+          id: user._id,
+          email: user.email,
+          name: user.name,
+        });
     })
     .catch((err) => {
       next(err);

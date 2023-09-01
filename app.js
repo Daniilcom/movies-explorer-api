@@ -8,9 +8,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
-const NotFoundError = require('./utils/errors/not-found-err');
-
 const { PORT, DB_URL } = process.env;
+
+const router = require('./routes/index');
 
 const app = express();
 app.use(cors({ origin: ['http://localhost:3000'], credentials: true, maxAge: 18000 }));
@@ -20,15 +20,7 @@ const limiter = rateLimit({
   max: 100,
 });
 
-const usersRouter = require('./routes/users');
-const moviesRouter = require('./routes/movies');
-const auth = require('./middlewares/auth');
-const {
-  validateСreation,
-  validateLogin,
-} = require('./middlewares/validation/auth-validator');
 const { errHandler } = require('./middlewares/err-handler');
-const { login, logout, createUser } = require('./controllers/users');
 
 mongoose.connect(DB_URL);
 
@@ -44,17 +36,7 @@ app.get('/crash-test', () => {
   }, 0);
 });
 
-app.post('/signup', validateСreation, createUser);
-app.post('/signin', validateLogin, login);
-
-app.use('/users', auth, usersRouter);
-app.use('/movies', auth, moviesRouter);
-
-app.get('/signout', logout);
-
-app.use('*', auth, (req, res, next) => {
-  next(new NotFoundError('Страница не найдена'));
-});
+app.use('/', router);
 
 app.use(errorLogger);
 
