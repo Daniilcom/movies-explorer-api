@@ -16,7 +16,11 @@ const router = require('./routes/index');
 const app = express();
 app.use(
   cors({
-    origin: true,
+    origin: [
+      'http://localhost:3000',
+      'https://movies-web.nomoredomainsicu.ru',
+      'http://movies-web.nomoredomainsicu.ru',
+    ],
     credentials: true,
   }),
 );
