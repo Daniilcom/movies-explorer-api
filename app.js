@@ -14,7 +14,14 @@ const router = require('./routes/index');
 
 const app = express();
 app.use(
-  cors({ origin: ['http://localhost:3000'], credentials: true, maxAge: 18000 }),
+  cors({
+    origin: [
+      'http://localhost:3000',
+      'https://movies-web.nomoredomainsicu.ru',
+      'http://movies-web.nomoredomainsicu.ru',
+    ],
+    credentials: true,
+  }),
 );
 
 const { errHandler } = require('./middlewares/err-handler');
@@ -22,8 +29,8 @@ const { errHandler } = require('./middlewares/err-handler');
 mongoose.connect(DB_URL);
 
 app.use(express.json());
-app.use(limiter);
 app.use(cookies());
+app.use(limiter);
 app.use(helmet());
 app.use(requestLogger);
 
